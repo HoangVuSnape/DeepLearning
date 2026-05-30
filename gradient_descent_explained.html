@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradient Descent From Scratch</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --card: #222639;
+            --border: #2e3348;
+            --text: #e2e4eb;
+            --text-dim: #8b8fa3;
+            --accent: #6c8cff;
+            --accent2: #ff6c8c;
+            --accent3: #6cffb4;
+            --orange: #ffaa5c;
+            --code-bg: #151822;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 20px 60px;
+            background: linear-gradient(180deg, #161a2b 0%, var(--bg) 100%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .hero p { color: var(--text-dim); font-size: 1.15rem; max-width: 600px; margin: 0 auto; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+        .toc {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 40px 0;
+        }
+
+        .toc h2 { font-size: 1.2rem; color: var(--accent); margin-bottom: 16px; }
+
+        .toc ol { padding-left: 24px; }
+
+        .toc li {
+            padding: 6px 0;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .toc li:hover { color: var(--accent); }
+        .toc a { color: inherit; text-decoration: none; }
+
+        section {
+            margin: 56px 0;
+            scroll-margin-top: 30px;
+        }
+
+        .step-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), #4a6cdd);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .step-badge.loss { background: linear-gradient(135deg, var(--accent2), #dd4a6c); }
+        .step-badge.grad { background: linear-gradient(135deg, var(--orange), #dd8a3a); }
+        .step-badge.update { background: linear-gradient(135deg, var(--accent3), #3add8a); }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 28px 0 12px;
+            color: var(--accent);
+        }
+
+        p { margin-bottom: 14px; color: var(--text); }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            margin: 20px 0;
+        }
+
+        .card.highlight-blue { border-left: 4px solid var(--accent); }
+        .card.highlight-red { border-left: 4px solid var(--accent2); }
+        .card.highlight-green { border-left: 4px solid var(--accent3); }
+        .card.highlight-orange { border-left: 4px solid var(--orange); }
+
+        .formula-box {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            text-align: center;
+            font-size: 1.3rem;
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            overflow-x: auto;
+        }
+
+        .formula-box .label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        code {
+            background: var(--code-bg);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.88rem;
+            line-height: 1.7;
+        }
+
+        pre .comment { color: #5a6080; }
+        pre .keyword { color: #c678dd; }
+        pre .func { color: #61afef; }
+        pre .string { color: #98c379; }
+        pre .number { color: var(--orange); }
+        pre .var { color: #e5c07b; }
+        pre .op { color: #56b6c2; }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 24px 0;
+            padding: 20px;
+        }
+
+        .flow-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .flow-box.data { border-color: var(--accent); color: var(--accent); }
+        .flow-box.forward { border-color: var(--accent3); color: var(--accent3); }
+        .flow-box.loss-box { border-color: var(--accent2); color: var(--accent2); }
+        .flow-box.backward { border-color: var(--orange); color: var(--orange); }
+        .flow-box.update-box { border-color: #c678dd; color: #c678dd; }
+
+        .flow-arrow { color: var(--text-dim); font-size: 1.4rem; }
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 700px) {
+            .compare-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2rem; }
+            .flow-diagram { flex-direction: column; }
+            .flow-arrow { transform: rotate(90deg); }
+        }
+
+        .compare-grid .card h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .tag.linear { background: rgba(108, 140, 255, 0.15); color: var(--accent); }
+        .tag.logistic { background: rgba(255, 108, 140, 0.15); color: var(--accent2); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--code-bg);
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td { color: var(--text-dim); }
+
+        .num-example {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 16px 0;
+            font-family: 'Cascadia Code', monospace;
+            font-size: 0.88rem;
+            line-height: 2;
+        }
+
+        .num-example .step-label {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .num-example .result {
+            color: var(--accent3);
+            font-weight: 600;
+        }
+
+        .num-example .val { color: var(--orange); }
+
+        .canvas-wrapper {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        canvas { max-width: 100%; }
+
+        .interactive-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            margin: 24px 0;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 12px 0;
+        }
+
+        .slider-group label {
+            min-width: 140px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .slider-group input[type="range"] {
+            flex: 1;
+            accent-color: var(--accent);
+        }
+
+        .slider-group .val-display {
+            min-width: 60px;
+            text-align: right;
+            font-family: monospace;
+            color: var(--orange);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--accent), #4a6cdd);
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            margin-top: 12px;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(108, 140, 255, 0.3);
+        }
+
+        .log-output {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: monospace;
+            font-size: 0.82rem;
+            max-height: 200px;
+            overflow-y: auto;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>Gradient Descent From Scratch</h1>
+    <p>Giải thích thuật toán Gradient Descent cho Linear Regression & Logistic Regression, từ dữ liệu thô đến kết quả cuối cùng.</p>
+</div>
+
+<div class="container">
+
+    <!-- TABLE OF CONTENTS -->
+    <nav class="toc">
+        <h2>Mục lục</h2>
+        <ol>
+            <li><a href="#s0">Bức tranh tổng quan — Flow chạy thuật toán</a></li>
+            <li><a href="#s1">Bước 0: Dữ liệu đầu vào (Data)</a></li>
+            <li><a href="#s2">Bước 1: Khởi tạo trọng số (Initialization)</a></li>
+            <li><a href="#s3">Bước 2: Lan truyền tiến (Forward Pass)</a></li>
+            <li><a href="#s4">Bước 3: Tính sai số (Compute Loss)</a></li>
+            <li><a href="#s5">Bước 4: Tính Gradient (Backward Pass)</a></li>
+            <li><a href="#s6">Bước 5: Cập nhật trọng số (Weight Update)</a></li>
+            <li><a href="#s7">Bước 6: Vòng lặp huấn luyện (Training Loop)</a></li>
+            <li><a href="#s8">Ví dụ tính tay một epoch</a></li>
+            <li><a href="#s9">Interactive Demo — Xem thuật toán chạy trực tiếp</a></li>
+            <li><a href="#s10">So sánh Linear vs Logistic</a></li>
+        </ol>
+    </nav>
+
+    <!-- SECTION 0: BIG PICTURE -->
+    <section id="s0">
+        <span class="step-badge">Overview</span>
+        <h2>Bức tranh tổng quan</h2>
+        <p>Toàn bộ thuật toán Gradient Descent xoay quanh một vòng lặp <strong>6 bước</strong>. Mỗi lần lặp (epoch), trọng số được điều chỉnh một chút để Loss giảm dần — giống như đi xuống dốc núi tìm điểm thấp nhất.</p>
+
+        <div class="flow-diagram">
+            <div class="flow-box data">Data<br><small>X, y</small></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box forward">Forward<br><small>y&#770; = f(X, w)</small></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box loss-box">Loss<br><small>MSE / BCE</small></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box backward">Gradient<br><small>&part;Loss/&part;w</small></div>
+            <span class="flow-arrow">&rarr;</span>
+            <div class="flow-box update-box">Update<br><small>w = w - &mu;&middot;grad</small></div>
+        </div>
+
+        <div class="card highlight-blue">
+            <p><strong>Quy tắc cốt lõi (công thức trên bảng):</strong></p>
+            <div class="formula-box">
+                <span class="label">Weight Update Rule</span>
+                w<sub>j</sub><sup>(t+1)</sup> = w<sub>j</sub><sup>(t)</sup> &minus; &mu; &sdot; &part;Loss / &part;w<sub>j</sub>
+            </div>
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Dấu <strong>trừ</strong> nghĩa là: đi <em>ngược</em> hướng gradient &rarr; Loss giảm.</p>
+        </div>
+    </section>
+
+    <!-- SECTION 1: DATA -->
+    <section id="s1">
+        <span class="step-badge">Bước 0</span>
+        <h2>Dữ liệu đầu vào (Data)</h2>
+        <p>Mọi thuật toán Machine Learning đều bắt đầu từ dữ liệu. Dữ liệu gồm hai phần:</p>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>Ký hiệu</th><th>Ý nghĩa</th><th>Ví dụ</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>X</code></td>
+                        <td>Ma trận đầu vào (features) — kích thước <strong>(N &times; d)</strong></td>
+                        <td>N = 4 mẫu, d = 2 đặc trưng (diện tích, số phòng)</td>
+                    </tr>
+                    <tr>
+                        <td><code>y</code></td>
+                        <td>Vector nhãn / đáp án — kích thước <strong>(N,)</strong></td>
+                        <td>Linear: giá nhà [300, 500, ...] <br>Logistic: nhãn [0, 1, 1, 0]</td>
+                    </tr>
+                    <tr>
+                        <td><code>N</code></td>
+                        <td>Số lượng mẫu dữ liệu</td>
+                        <td>4</td>
+                    </tr>
+                    <tr>
+                        <td><code>d</code></td>
+                        <td>Số đặc trưng (features) mỗi mẫu</td>
+                        <td>2</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>Ví dụ cụ thể</h3>
+        <pre><span class="comment"># 4 mẫu, mỗi mẫu 2 features</span>
+<span class="var">X</span> = [[<span class="number">50</span>, <span class="number">2</span>],     <span class="comment"># nhà 50m², 2 phòng</span>
+     [<span class="number">80</span>, <span class="number">3</span>],     <span class="comment"># nhà 80m², 3 phòng</span>
+     [<span class="number">60</span>, <span class="number">2</span>],     <span class="comment"># nhà 60m², 2 phòng</span>
+     [<span class="number">100</span>, <span class="number">4</span>]]    <span class="comment"># nhà 100m², 4 phòng</span>
+
+<span class="comment"># Linear: giá nhà (triệu VND)</span>
+<span class="var">y_reg</span> = [<span class="number">300</span>, <span class="number">500</span>, <span class="number">350</span>, <span class="number">700</span>]
+
+<span class="comment"># Logistic: nhãn (0 = rẻ, 1 = đắt)</span>
+<span class="var">y_cls</span> = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>]</pre>
+
+        <div class="card highlight-orange">
+            <p><strong>Chuẩn hóa dữ liệu (StandardScaler):</strong> Trước khi chạy Gradient Descent, mỗi cột feature nên được scale về trung bình = 0, độ lệch chuẩn = 1. Nếu không, feature có giá trị lớn (diện tích: 50-100) sẽ "lấn át" feature nhỏ (số phòng: 2-4), khiến thuật toán hội tụ rất chậm hoặc phân kỳ.</p>
+        </div>
+    </section>
+
+    <!-- SECTION 2: INITIALIZATION -->
+    <section id="s2">
+        <span class="step-badge">Bước 1</span>
+        <h2>Khởi tạo trọng số (Initialization)</h2>
+        <p>Trước khi bắt đầu học, ta cần khởi tạo các thông số:</p>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>Thông số</th><th>Giải thích</th><th>Giá trị ban đầu</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>w</code></td>
+                        <td>Vector trọng số — kích thước <strong>(d,)</strong>, mỗi feature một trọng số</td>
+                        <td>[0, 0, ..., 0]</td>
+                    </tr>
+                    <tr>
+                        <td><code>b</code></td>
+                        <td>Bias (hệ số tự do) — 1 số thực</td>
+                        <td>0</td>
+                    </tr>
+                    <tr>
+                        <td><code>&mu;</code></td>
+                        <td>Learning rate — quyết định "bước chân" lớn hay nhỏ</td>
+                        <td>0.01 &ndash; 0.1</td>
+                    </tr>
+                    <tr>
+                        <td><code>epochs</code></td>
+                        <td>Số vòng lặp huấn luyện</td>
+                        <td>500 &ndash; 5000</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <pre><span class="comment"># Python code</span>
+<span class="var">w</span> = np.<span class="func">zeros</span>(n_features)   <span class="comment"># [0.0, 0.0]</span>
+<span class="var">b</span> = <span class="number">0.0</span>
+<span class="var">lr</span> = <span class="number">0.05</span>
+<span class="var">epochs</span> = <span class="number">1000</span></pre>
+    </section>
+
+    <!-- SECTION 3: FORWARD PASS -->
+    <section id="s3">
+        <span class="step-badge">Bước 2</span>
+        <h2>Lan truyền tiến (Forward Pass)</h2>
+        <p>Dùng trọng số hiện tại để tính giá trị dự đoán <code>ŷ</code>. Đây là bước "đoán thử" của mô hình.</p>
+
+        <div class="compare-grid">
+            <div class="card highlight-blue">
+                <span class="tag linear">Linear Regression</span>
+                <h4>Dự đoán trực tiếp</h4>
+                <div class="formula-box" style="font-size: 1.1rem;">
+                    <span class="label">Forward (Linear)</span>
+                    ŷ = X &sdot; w + b
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-dim);">Kết quả là số thực bất kỳ (-&infin; &rarr; +&infin;), phù hợp dự đoán giá nhà, nhiệt độ, ...</p>
+            </div>
+            <div class="card highlight-red">
+                <span class="tag logistic">Logistic Regression</span>
+                <h4>Qua Sigmoid &rarr; xác suất</h4>
+                <div class="formula-box" style="font-size: 1.1rem;">
+                    <span class="label">Forward (Logistic)</span>
+                    z = X &sdot; w + b<br>
+                    ŷ = &sigma;(z) = 1 / (1 + e<sup>&minus;z</sup>)
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-dim);">Sigmoid ép output về (0, 1) &rarr; xác suất thuộc class 1.</p>
+            </div>
+        </div>
+
+        <h3>Sigmoid trực quan</h3>
+        <div class="canvas-wrapper">
+            <canvas id="sigmoidCanvas" width="500" height="250"></canvas>
+        </div>
+
+        <pre><span class="comment"># Linear forward</span>
+<span class="var">y_hat</span> = X @ w + b
+
+<span class="comment"># Logistic forward</span>
+<span class="var">z</span> = X @ w + b
+<span class="var">y_hat</span> = <span class="number">1</span> / (<span class="number">1</span> + np.<span class="func">exp</span>(-z))</pre>
+    </section>
+
+    <!-- SECTION 4: LOSS -->
+    <section id="s4">
+        <span class="step-badge loss">Bước 3</span>
+        <h2>Tính sai số (Compute Loss)</h2>
+        <p>So sánh dự đoán <code>ŷ</code> với đáp án thật <code>y</code>. Loss càng nhỏ &rarr; mô hình càng chính xác.</p>
+
+        <div class="compare-grid">
+            <div class="card highlight-blue">
+                <span class="tag linear">Linear &mdash; MSE</span>
+                <div class="formula-box" style="font-size: 1rem;">
+                    <span class="label">Mean Squared Error</span>
+                    MSE = (1/N) &sum; (y<sub>i</sub> &minus; ŷ<sub>i</sub>)&sup2;
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-dim);">Bình phương sai số rồi lấy trung bình. Phạt nặng các dự đoán sai lệch lớn.</p>
+                <pre style="font-size: 0.82rem;"><span class="var">loss</span> = np.<span class="func">mean</span>((y - y_hat) ** <span class="number">2</span>)</pre>
+            </div>
+            <div class="card highlight-red">
+                <span class="tag logistic">Logistic &mdash; Cross-Entropy</span>
+                <div class="formula-box" style="font-size: 1rem;">
+                    <span class="label">Binary Cross-Entropy</span>
+                    BCE = &minus;(1/N) &sum; [y<sub>i</sub> log(ŷ<sub>i</sub>) + (1&minus;y<sub>i</sub>) log(1&minus;ŷ<sub>i</sub>)]
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-dim);">Phạt nặng khi dự đoán tự tin nhưng sai (vd: đoán 0.99 mà thực tế là 0).</p>
+                <pre style="font-size: 0.82rem;"><span class="var">loss</span> = -np.<span class="func">mean</span>(y * np.<span class="func">log</span>(y_hat) + (<span class="number">1</span> - y) * np.<span class="func">log</span>(<span class="number">1</span> - y_hat))</pre>
+            </div>
+        </div>
+
+        <div class="card highlight-orange">
+            <p><strong>Lưu ý:</strong> Bước tính Loss này <em>không dùng để cập nhật</em> trọng số. Nó chỉ để bạn in ra màn hình theo dõi: nếu Loss giảm dần qua mỗi epoch &rarr; mô hình đang học đúng hướng.</p>
+        </div>
+    </section>
+
+    <!-- SECTION 5: GRADIENT -->
+    <section id="s5">
+        <span class="step-badge grad">Bước 4</span>
+        <h2>Tính Gradient (Backward Pass)</h2>
+        <p>Đây là bước <strong>quan trọng nhất</strong> — tính đạo hàm riêng <code>&part;Loss/&part;w</code> để biết trọng số đang ảnh hưởng đến sai số theo hướng nào.</p>
+
+        <div class="card highlight-orange">
+            <p><strong>Điều kỳ diệu:</strong> Dù MSE và Cross-Entropy là hai hàm Loss khác nhau, nhưng sau khi tính đạo hàm, cả hai đều rút gọn về <em>cùng một dạng ma trận</em>:</p>
+            <div class="formula-box">
+                <span class="label">Gradient chung cho cả Linear & Logistic</span>
+                &part;Loss/&part;w = (1/N) &sdot; X<sup>T</sup> &sdot; (ŷ &minus; y)<br><br>
+                &part;Loss/&part;b = (1/N) &sdot; &sum;(ŷ &minus; y)
+            </div>
+        </div>
+
+        <h3>Tại sao dạng giống nhau?</h3>
+        <div class="card">
+            <p><strong>Linear Regression:</strong> Đạo hàm MSE theo w, sau khi rút gọn chuỗi chain rule, cho ra <code>(1/N) * X^T . (ŷ - y)</code> một cách trực tiếp.</p>
+            <p><strong>Logistic Regression:</strong> Đạo hàm Cross-Entropy phức tạp hơn vì phải đi qua hàm Sigmoid, nhưng đạo hàm của Sigmoid có tính chất đặc biệt: <code>&sigma;'(z) = &sigma;(z)(1 - &sigma;(z))</code>. Khi nhân với đạo hàm Cross-Entropy, hai phần <code>&sigma;(z)(1-&sigma;(z))</code> triệt tiêu nhau, cho ra kết quả giống y hệt.</p>
+        </div>
+
+        <pre><span class="comment"># error = (ŷ - y), vector kích thước (N,)</span>
+<span class="var">error</span> = y_hat - y
+
+<span class="comment"># gradient w: X^T . error / N</span>
+<span class="comment"># X^T shape: (d, N), error shape: (N,) => dw shape: (d,)</span>
+<span class="var">dw</span> = (<span class="number">1</span> / N) * (X.T @ error)
+
+<span class="comment"># gradient b: trung bình error</span>
+<span class="var">db</span> = (<span class="number">1</span> / N) * np.<span class="func">sum</span>(error)</pre>
+
+        <h3>Giải thích hình học</h3>
+        <div class="card">
+            <p>Tưởng tượng bạn đang đứng trên sườn núi (Loss surface). Gradient cho biết <em>hướng dốc nhất đi lên</em>. Vì ta muốn <em>đi xuống</em> (giảm Loss), nên ta đi <strong>ngược hướng gradient</strong> &rarr; đó là lý do có dấu trừ trong công thức.</p>
+        </div>
+    </section>
+
+    <!-- SECTION 6: WEIGHT UPDATE -->
+    <section id="s6">
+        <span class="step-badge update">Bước 5</span>
+        <h2>Cập nhật trọng số (Weight Update)</h2>
+        <p>Áp dụng công thức trong khung vuông trên bảng:</p>
+
+        <div class="formula-box">
+            <span class="label">The Update Rule</span>
+            w = w &minus; &mu; &sdot; dw<br>
+            b = b &minus; &mu; &sdot; db
+        </div>
+
+        <pre><span class="comment"># Cập nhật trọng số</span>
+<span class="var">w</span> = w - lr * dw
+<span class="var">b</span> = b - lr * db</pre>
+
+        <h3>Learning Rate (&mu;) ảnh hưởng thế nào?</h3>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th>&mu; quá nhỏ</th><th>&mu; vừa phải</th><th>&mu; quá lớn</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="color: var(--orange);">Hội tụ rất chậm, tốn nhiều epoch</td>
+                        <td style="color: var(--accent3);">Hội tụ mượt, Loss giảm đều</td>
+                        <td style="color: var(--accent2);">Loss nhảy lung tung, có thể phân kỳ (&rarr; &infin;)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- SECTION 7: TRAINING LOOP -->
+    <section id="s7">
+        <span class="step-badge">Bước 6</span>
+        <h2>Vòng lặp huấn luyện (Training Loop)</h2>
+        <p>Bọc tất cả Bước 2 &rarr; 5 vào vòng <code>for</code>. Mỗi epoch, trọng số điều chỉnh một chút cho đến khi Loss hội tụ.</p>
+
+        <pre><span class="var">loss_history</span> = []
+
+<span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="func">range</span>(epochs):
+    <span class="comment"># Bước 2: Forward</span>
+    <span class="var">y_hat</span> = X @ w + b                       <span class="comment"># Linear</span>
+    <span class="comment"># y_hat = sigmoid(X @ w + b)             # Logistic</span>
+
+    <span class="comment"># Bước 3: Loss (để theo dõi)</span>
+    <span class="var">loss</span> = np.<span class="func">mean</span>((y - y_hat) ** <span class="number">2</span>)          <span class="comment"># MSE</span>
+    loss_history.<span class="func">append</span>(loss)
+
+    <span class="comment"># Bước 4: Gradient</span>
+    <span class="var">error</span> = y_hat - y
+    <span class="var">dw</span> = (<span class="number">1</span> / N) * (X.T @ error)
+    <span class="var">db</span> = (<span class="number">1</span> / N) * np.<span class="func">sum</span>(error)
+
+    <span class="comment"># Bước 5: Update</span>
+    <span class="var">w</span> = w - lr * dw
+    <span class="var">b</span> = b - lr * db</pre>
+    </section>
+
+    <!-- SECTION 8: NUMERICAL EXAMPLE -->
+    <section id="s8">
+        <span class="step-badge grad">Ví dụ</span>
+        <h2>Tính tay 1 Epoch (Linear Regression)</h2>
+        <p>Giả sử dữ liệu đã chuẩn hóa, 3 mẫu, 1 feature. Theo dõi từng bước:</p>
+
+        <div class="num-example">
+            <span class="step-label">Dữ liệu:</span><br>
+            X = [<span class="val">-1.0</span>, <span class="val">0.0</span>, <span class="val">1.0</span>] &nbsp;&nbsp; y = [<span class="val">-2.0</span>, <span class="val">0.5</span>, <span class="val">3.0</span>]<br>
+            w = <span class="val">0.0</span>, b = <span class="val">0.0</span>, lr = <span class="val">0.1</span><br><br>
+
+            <span class="step-label">Bước 2 — Forward:</span><br>
+            ŷ = X &sdot; w + b = [(-1)(0) + 0, (0)(0) + 0, (1)(0) + 0] = [<span class="val">0, 0, 0</span>]<br><br>
+
+            <span class="step-label">Bước 3 — Loss (MSE):</span><br>
+            MSE = (1/3) &sdot; [(-2-0)&sup2; + (0.5-0)&sup2; + (3-0)&sup2;] = (1/3)(4 + 0.25 + 9) = <span class="result">4.4167</span><br><br>
+
+            <span class="step-label">Bước 4 — Gradient:</span><br>
+            error = ŷ - y = [0-(-2), 0-0.5, 0-3] = [<span class="val">2, -0.5, -3</span>]<br>
+            dw = (1/3) &sdot; X<sup>T</sup> &sdot; error = (1/3)[(-1)(2) + (0)(-0.5) + (1)(-3)] = (1/3)(-5) = <span class="result">-1.6667</span><br>
+            db = (1/3) &sdot; (2 + (-0.5) + (-3)) = (1/3)(-1.5) = <span class="result">-0.5</span><br><br>
+
+            <span class="step-label">Bước 5 — Update:</span><br>
+            w = 0 - 0.1 &times; (-1.6667) = <span class="result">0.1667</span><br>
+            b = 0 - 0.1 &times; (-0.5) = <span class="result">0.05</span><br><br>
+
+            <span class="step-label">Kết quả:</span> Sau 1 epoch, w đã dịch từ 0 &rarr; 0.1667 (hướng dương, đúng trend dữ liệu).
+        </div>
+    </section>
+
+    <!-- SECTION 9: INTERACTIVE DEMO -->
+    <section id="s9">
+        <span class="step-badge update">Interactive</span>
+        <h2>Demo — Xem Gradient Descent chạy trực tiếp</h2>
+
+        <div class="interactive-box">
+            <h3 style="margin-top: 0;">Linear Regression Demo</h3>
+            <p style="color: var(--text-dim);">Điều chỉnh Learning Rate và Epochs, rồi nhấn "Train" để xem Loss giảm theo từng epoch.</p>
+
+            <div class="slider-group">
+                <label>Learning Rate (&mu;):</label>
+                <input type="range" id="lrSlider" min="0.001" max="0.5" step="0.001" value="0.05">
+                <span class="val-display" id="lrVal">0.05</span>
+            </div>
+            <div class="slider-group">
+                <label>Epochs:</label>
+                <input type="range" id="epochSlider" min="10" max="500" step="10" value="100">
+                <span class="val-display" id="epochVal">100</span>
+            </div>
+
+            <button onclick="runDemo()">Train</button>
+
+            <div class="canvas-wrapper" style="margin-top: 20px;">
+                <canvas id="lossCanvas" width="600" height="280"></canvas>
+            </div>
+
+            <div id="logOutput" class="log-output">Nhấn "Train" để bắt đầu...</div>
+        </div>
+
+        <div class="interactive-box" style="margin-top: 24px;">
+            <h3 style="margin-top: 0;">Logistic Regression Demo</h3>
+            <p style="color: var(--text-dim);">Phân loại 2 nhóm điểm bằng Sigmoid + Cross-Entropy.</p>
+
+            <div class="slider-group">
+                <label>Learning Rate (&mu;):</label>
+                <input type="range" id="lrSlider2" min="0.01" max="2" step="0.01" value="0.5">
+                <span class="val-display" id="lrVal2">0.50</span>
+            </div>
+            <div class="slider-group">
+                <label>Epochs:</label>
+                <input type="range" id="epochSlider2" min="10" max="500" step="10" value="200">
+                <span class="val-display" id="epochVal2">200</span>
+            </div>
+
+            <button onclick="runLogisticDemo()">Train</button>
+
+            <div class="canvas-wrapper" style="margin-top: 20px;">
+                <canvas id="lossCanvas2" width="600" height="280"></canvas>
+            </div>
+
+            <div id="logOutput2" class="log-output">Nhấn "Train" để bắt đầu...</div>
+        </div>
+    </section>
+
+    <!-- SECTION 10: COMPARISON -->
+    <section id="s10">
+        <span class="step-badge">So sánh</span>
+        <h2>Linear vs Logistic — Tổng kết</h2>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr><th></th><th>Linear Regression</th><th>Logistic Regression</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Bài toán</strong></td>
+                        <td>Regression (dự đoán số liên tục)</td>
+                        <td>Classification (phân loại nhãn)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Output</strong></td>
+                        <td>Số thực bất kỳ</td>
+                        <td>Xác suất (0 &rarr; 1)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hàm kích hoạt</strong></td>
+                        <td>Không (identity)</td>
+                        <td>Sigmoid</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Loss function</strong></td>
+                        <td>MSE (Mean Squared Error)</td>
+                        <td>BCE (Binary Cross-Entropy)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gradient dw</strong></td>
+                        <td colspan="2" style="text-align: center; color: var(--accent3);">(1/N) &sdot; X<sup>T</sup> &sdot; (ŷ &minus; y) &nbsp; <em>&larr; giống nhau!</em></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Weight update</strong></td>
+                        <td colspan="2" style="text-align: center; color: var(--accent3);">w = w &minus; &mu; &sdot; dw &nbsp; <em>&larr; giống nhau!</em></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card highlight-green">
+            <p><strong>Takeaway:</strong> Cả hai thuật toán dùng chung <em>cùng một công thức cập nhật</em>. Chỉ khác nhau ở forward pass (có Sigmoid hay không) và loss function (MSE vs Cross-Entropy). Gradient và update rule hoàn toàn giống nhau — đó là sức mạnh của Gradient Descent.</p>
+        </div>
+    </section>
+
+</div>
+
+<footer>
+    Deep Learning — TDTU 2026 &nbsp;|&nbsp; Gradient Descent From Scratch
+</footer>
+
+<script>
+// ============================================
+// SIGMOID CHART
+// ============================================
+(function drawSigmoid() {
+    const c = document.getElementById('sigmoidCanvas');
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+
+    ctx.fillStyle = '#151822';
+    ctx.fillRect(0, 0, W, H);
+
+    // axes
+    ctx.strokeStyle = '#2e3348';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2);
+    ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H);
+    ctx.stroke();
+
+    // labels
+    ctx.fillStyle = '#8b8fa3';
+    ctx.font = '12px monospace';
+    ctx.fillText('0', W / 2 + 4, H / 2 + 14);
+    ctx.fillText('1', W / 2 + 4, 18);
+    ctx.fillText('0.5', W / 2 + 4, H / 2 - 4 + (0 - 0.5) * -(H - 40) / 1 + 20);
+    ctx.fillText('-6', 8, H / 2 + 14);
+    ctx.fillText('+6', W - 25, H / 2 + 14);
+
+    // sigmoid curve
+    ctx.strokeStyle = '#ff6c8c';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let px = 0; px < W; px++) {
+        const z = (px / W) * 12 - 6;
+        const sig = 1 / (1 + Math.exp(-z));
+        const py = H - 20 - sig * (H - 40);
+        if (px === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // 0.5 line
+    ctx.strokeStyle = '#2e3348';
+    ctx.setLineDash([5, 5]);
+    const halfY = H - 20 - 0.5 * (H - 40);
+    ctx.beginPath();
+    ctx.moveTo(0, halfY); ctx.lineTo(W, halfY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#8b8fa3';
+    ctx.fillText('0.5', 8, halfY - 4);
+    ctx.fillStyle = '#ff6c8c';
+    ctx.font = '14px sans-serif';
+    ctx.fillText('σ(z) = 1 / (1 + e⁻ᶻ)', W / 2 + 40, 30);
+})();
+
+// ============================================
+// SLIDER UPDATES
+// ============================================
+document.getElementById('lrSlider').oninput = function() {
+    document.getElementById('lrVal').textContent = parseFloat(this.value).toFixed(3);
+};
+document.getElementById('epochSlider').oninput = function() {
+    document.getElementById('epochVal').textContent = this.value;
+};
+document.getElementById('lrSlider2').oninput = function() {
+    document.getElementById('lrVal2').textContent = parseFloat(this.value).toFixed(2);
+};
+document.getElementById('epochSlider2').oninput = function() {
+    document.getElementById('epochVal2').textContent = this.value;
+};
+
+// ============================================
+// LINEAR REGRESSION DEMO
+// ============================================
+function runDemo() {
+    const lr = parseFloat(document.getElementById('lrSlider').value);
+    const epochs = parseInt(document.getElementById('epochSlider').value);
+
+    // Generate simple data: y = 2.5x + 1.0 + noise
+    const N = 30;
+    const X = [], y = [];
+    for (let i = 0; i < N; i++) {
+        const xi = (Math.random() * 4) - 2;
+        X.push(xi);
+        y.push(2.5 * xi + 1.0 + (Math.random() - 0.5) * 2);
+    }
+
+    let w = 0, b = 0;
+    const lossHistory = [];
+
+    for (let e = 0; e < epochs; e++) {
+        // Forward
+        const yHat = X.map(xi => xi * w + b);
+        // MSE
+        let loss = 0;
+        for (let i = 0; i < N; i++) loss += (y[i] - yHat[i]) ** 2;
+        loss /= N;
+        lossHistory.push(loss);
+        // Gradient
+        let dw = 0, db = 0;
+        for (let i = 0; i < N; i++) {
+            const err = yHat[i] - y[i];
+            dw += X[i] * err;
+            db += err;
+        }
+        dw /= N;
+        db /= N;
+        // Update
+        w -= lr * dw;
+        b -= lr * db;
+    }
+
+    drawLossChart('lossCanvas', lossHistory, '#6c8cff', 'MSE Loss');
+
+    const log = document.getElementById('logOutput');
+    log.innerHTML =
+        `<span style="color:#6cffb4">Training complete!</span>\n` +
+        `Epochs: ${epochs} | LR: ${lr}\n` +
+        `Final w = ${w.toFixed(4)} (true: 2.5)\n` +
+        `Final b = ${b.toFixed(4)} (true: 1.0)\n` +
+        `Final MSE = ${lossHistory[lossHistory.length - 1].toFixed(6)}\n` +
+        `First MSE = ${lossHistory[0].toFixed(4)} → Last MSE = ${lossHistory[lossHistory.length - 1].toFixed(4)}`;
+}
+
+// ============================================
+// LOGISTIC REGRESSION DEMO
+// ============================================
+function runLogisticDemo() {
+    const lr = parseFloat(document.getElementById('lrSlider2').value);
+    const epochs = parseInt(document.getElementById('epochSlider2').value);
+
+    // Generate 2-class data
+    const N = 40;
+    const X = [], y = [];
+    for (let i = 0; i < N; i++) {
+        if (i < N / 2) {
+            X.push(-1.5 + (Math.random() - 0.5) * 2);
+            y.push(0);
+        } else {
+            X.push(1.5 + (Math.random() - 0.5) * 2);
+            y.push(1);
+        }
+    }
+
+    const sigmoid = z => 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, z))));
+
+    let w = 0, b = 0;
+    const lossHistory = [];
+
+    for (let e = 0; e < epochs; e++) {
+        // Forward
+        const yHat = X.map(xi => sigmoid(xi * w + b));
+        // BCE
+        let loss = 0;
+        const eps = 1e-15;
+        for (let i = 0; i < N; i++) {
+            const p = Math.max(eps, Math.min(1 - eps, yHat[i]));
+            loss -= y[i] * Math.log(p) + (1 - y[i]) * Math.log(1 - p);
+        }
+        loss /= N;
+        lossHistory.push(loss);
+        // Gradient
+        let dw = 0, db = 0;
+        for (let i = 0; i < N; i++) {
+            const err = yHat[i] - y[i];
+            dw += X[i] * err;
+            db += err;
+        }
+        dw /= N;
+        db /= N;
+        // Update
+        w -= lr * dw;
+        b -= lr * db;
+    }
+
+    drawLossChart('lossCanvas2', lossHistory, '#ff6c8c', 'Binary Cross-Entropy Loss');
+
+    // Accuracy
+    let correct = 0;
+    for (let i = 0; i < N; i++) {
+        const pred = sigmoid(X[i] * w + b) >= 0.5 ? 1 : 0;
+        if (pred === y[i]) correct++;
+    }
+
+    const log = document.getElementById('logOutput2');
+    log.innerHTML =
+        `<span style="color:#6cffb4">Training complete!</span>\n` +
+        `Epochs: ${epochs} | LR: ${lr}\n` +
+        `Final w = ${w.toFixed(4)}, b = ${b.toFixed(4)}\n` +
+        `Final BCE = ${lossHistory[lossHistory.length - 1].toFixed(6)}\n` +
+        `Accuracy = ${correct}/${N} (${(correct / N * 100).toFixed(1)}%)\n` +
+        `First BCE = ${lossHistory[0].toFixed(4)} → Last BCE = ${lossHistory[lossHistory.length - 1].toFixed(4)}`;
+}
+
+// ============================================
+// DRAW LOSS CHART
+// ============================================
+function drawLossChart(canvasId, data, color, label) {
+    const c = document.getElementById(canvasId);
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+    const pad = { top: 30, right: 20, bottom: 40, left: 65 };
+    const plotW = W - pad.left - pad.right;
+    const plotH = H - pad.top - pad.bottom;
+
+    ctx.fillStyle = '#151822';
+    ctx.fillRect(0, 0, W, H);
+
+    if (data.length === 0) return;
+
+    const maxLoss = Math.max(...data);
+    const minLoss = Math.min(...data);
+    const range = maxLoss - minLoss || 1;
+
+    // Grid
+    ctx.strokeStyle = '#1e2235';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const gy = pad.top + (plotH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, gy);
+        ctx.lineTo(W - pad.right, gy);
+        ctx.stroke();
+
+        const val = maxLoss - (range / 4) * i;
+        ctx.fillStyle = '#5a6080';
+        ctx.font = '11px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(val.toFixed(3), pad.left - 8, gy + 4);
+    }
+
+    // Loss curve
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let i = 0; i < data.length; i++) {
+        const x = pad.left + (i / (data.length - 1)) * plotW;
+        const y = pad.top + (1 - (data[i] - minLoss) / range) * plotH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Fill under curve
+    ctx.lineTo(pad.left + plotW, pad.top + plotH);
+    ctx.lineTo(pad.left, pad.top + plotH);
+    ctx.closePath();
+    ctx.fillStyle = color.replace(')', ', 0.08)').replace('rgb', 'rgba').replace('#', '');
+    // Use hex to rgba
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.08)`;
+    ctx.fill();
+
+    // Axis labels
+    ctx.fillStyle = '#8b8fa3';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Epoch', W / 2, H - 6);
+
+    ctx.save();
+    ctx.translate(14, H / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+
+    // Epoch ticks
+    ctx.textAlign = 'center';
+    ctx.font = '10px monospace';
+    ctx.fillStyle = '#5a6080';
+    const ticks = 5;
+    for (let i = 0; i <= ticks; i++) {
+        const epoch = Math.round((i / ticks) * (data.length - 1));
+        const x = pad.left + (epoch / (data.length - 1)) * plotW;
+        ctx.fillText(epoch, x, H - pad.bottom + 18);
+    }
+
+    // Title
+    ctx.fillStyle = color;
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(label + ' over Training', pad.left, 18);
+}
+
+// Run initial demos
+runDemo();
+runLogisticDemo();
+</script>
+
+</body>
+</html>
