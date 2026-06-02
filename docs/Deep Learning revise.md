@@ -43,79 +43,79 @@ dg-pinned: "false"
 aliases:
 cssclasses:
 ---
-# Buoi 1 - Tong quan mang no-ron (Deep Learning)
+# Buổi 1 - Tổng quan mạng nơ-ron (Deep Learning)
 
-## Muc tieu
-- Hieu cau truc mang no-ron: input -> hidden -> output.
-- Hieu co che hoc: forward -> loss -> backprop -> gradient descent.
-- Hieu vai tro cua weights, bias, activation.
+## Mục tiêu
+- Hiểu cấu trúc mạng nơ-ron: input -> hidden -> output.
+- Hiểu cơ chế học: forward -> loss -> backprop -> gradient descent.
+- Hiểu vai trò của weights, bias, activation.
 
-## Cau truc mot node
-1. Buoc tuyen tinh:
+## Cấu trúc một node
+1. Bước tuyến tính:
    $$z = w_1x_1 + w_2x_2 + ... + w_nx_n + b$$
-2. Buoc phi tuyen:
+2. Bước phi tuyến:
    $$a = f(z)$$
 
-Trong do $w$ dieu chinh do quan trong cua tung dau vao, $b$ cho phep dich chuyen nguong kich hoat, va $f$ tao do cong (phi tuyen).
+Trong đó $w$ điều chỉnh độ quan trọng của từng đầu vào, $b$ cho phép dịch chuyển ngưỡng kích hoạt, và $f$ tạo độ cong (phi tuyến).
 
-## 1. Lan truyen tien (Forward propagation)
-- Input vao tung lop an.
-- Moi node tinh $z$ (tong co trong so) va qua ham kich hoat $f$.
-- Lop output tao ra du doan $\hat{y}$.
+## 1. Lan truyền tiến (Forward propagation)
+- Input vào từng lớp ẩn.
+- Mỗi node tính $z$ (tổng có trọng số) và qua hàm kích hoạt $f$.
+- Lớp output tạo ra dự đoán $\hat{y}$.
 
-**Loss/Error:** so sanh $\hat{y}$ voi $y$ de tinh sai so.
+**Loss/Error:** so sánh $\hat{y}$ với $y$ để tính sai số.
 
-## 2. Lan truyen nguoc (Backpropagation)
-- Dung quy tac chuoi de lan truyen sai so tu output ve cac lop truoc.
-- Tinh gradient cho tung $w, b$.
+## 2. Lan truyền ngược (Backpropagation)
+- Dùng quy tắc chuỗi để lan truyền sai số từ output về các lớp trước.
+- Tính gradient cho từng $w, b$.
 
-## 3. Gradient Descent (cap nhat tham so)
+## 3. Gradient Descent (cập nhật tham số)
 $$w_{new} = w_{old} - \eta \cdot \frac{\partial L}{\partial w}$$
 $$b_{new} = b_{old} - \eta \cdot \frac{\partial L}{\partial b}$$
 
-Trong do $\eta$ la learning rate.
+Trong đó $\eta$ là learning rate.
 
 ---
 
-## Vi sao activation phai phi tuyen?
-- Neu tat ca cac lop deu tuyen tinh, toan bo mang se rut gon thanh mot lop tuyen tinh duy nhat.
-- Ham phi tuyen giup mang hoc cac bien doi phuc tap va ranh gioi cong.
-- Dao ham khong phai hang so -> cap nhat gradient co y nghia.
+## Vì sao activation phải phi tuyến?
+- Nếu tất cả các lớp đều tuyến tính, toàn bộ mạng sẽ rút gọn thành một lớp tuyến tính duy nhất.
+- Hàm phi tuyến giúp mạng học các biến đổi phức tạp và ranh giới cong.
+- Đạo hàm không phải hằng số -> cập nhật gradient có ý nghĩa.
 
-## Vai tro cua $w$, $b$, va activation
-- **Weights ($w$):** dieu chinh do quan trong cua tung feature.
-- **Bias ($b$):** dich chuyen nguong kich hoat, tranh bi ep qua goc toan do.
-- **Activation ($f$):** tao phi tuyen, giup mo hinh bieu dien du lieu phuc tap.
+## Vai trò của $w$, $b$, và activation
+- **Weights ($w$):** điều chỉnh độ quan trọng của từng feature.
+- **Bias ($b$):** dịch chuyển ngưỡng kích hoạt, tránh bị ép qua gốc tọa độ.
+- **Activation ($f$):** tạo phi tuyến, giúp mô hình biểu diễn dữ liệu phức tạp.
 
 ---
 
-## Ham Sigmoid (vi du activation)
+## Hàm Sigmoid (ví dụ activation)
 $$\sigma(z) = \frac{1}{1 + e^{-z}}$$
-- Gia tri trong khoang $(0, 1)$.
-- Hay dung cho bai toan phan loai nhi phan.
-- Dao ham:
+- Giá trị trong khoảng $(0, 1)$.
+- Hay dùng cho bài toán phân loại nhị phân.
+- Đạo hàm:
   $$\sigma'(z) = \sigma(z) (1 - \sigma(z))$$
 
 ---
 
-## Softmax va Cross-Entropy (phan loai nhieu nhan)
-- Softmax bien logit thanh phan phoi xac suat:
+## Softmax và Cross-Entropy (phân loại nhiều nhãn)
+- Softmax biến logit thành phân phối xác suất:
   $$\hat{y}_i = \frac{e^{z_i}}{\sum_j e^{z_j}}$$
 - Cross-entropy cho 1 sample:
   $$L = -\sum_i y_i \log(\hat{y}_i)$$
 
-Vi du (1 sample):
+Ví dụ (1 sample):
 - $y = [0, 1, 0]$, $\hat{y} = [0.3, 0.6, 0.1]$
 - $L = -\log(0.6) = 0.5108$
 
 ---
 
-# Ghi chu / QA
-- Tai sao activation phai phi tuyen?
-- Tai sao trong 1 node can du $w$, $b$, va activation?
+# Ghi chú / QA
+- Tại sao activation phải phi tuyến?
+- Tại sao trong 1 node cần đủ $w$, $b$, và activation?
 
-# Bai tap / De 2
-- Classification, Softmax, 3 nhan.
+# Bài tập / Đề 2
+- Classification, Softmax, 3 nhãn.
 
-# Tinh toan
+# Tính toán
 - [Calcuate](Calcuate.md)
