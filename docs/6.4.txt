@@ -1,0 +1,1 @@
+bài về nhà: tìm hiểu thuật toán Lan truyền ngược (backpropagation) trong huấn luyện mạng MLP (MultiLayer Perceptron), trình bày lý thuyết (chi tiết) và code

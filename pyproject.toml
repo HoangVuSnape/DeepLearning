@@ -20,4 +20,5 @@ packages = ["gradient_descent"]
 [project.scripts]
 train-linear = "gradient_descent.linear_regression:main"
 train-logistic = "gradient_descent.logistic_regression:main"
+train-mlp = "gradient_descent.mlp_backpropagation:main"
 train-all = "gradient_descent.run_all:main"
