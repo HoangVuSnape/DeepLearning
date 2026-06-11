@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/6.4_Backpropagation/Backpropagation_Explanation.md",
+                "file": "docs/6.11/README.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Backpropagation_Explanation"
+              "title": "README"
             }
           }
         ]
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "right": {
     "id": "ff034abf339d5212",
@@ -183,14 +183,36 @@
       "bases:Create new base": false
     }
   },
-  "active": "615a2a6eae99a26e",
+  "active": "e53d0a10fb06eabd",
   "lastOpenFiles": [
-    "notebook/PyTorch_Two_Networks_Connection.ipynb",
-    "notebook/two_networks_connection.py",
-    "notebook/PyTorch_MLP_Regression_Notebook.ipynb",
-    "notebook/PyTorch_MLP_Classification_Notebook.ipynb",
-    "notebook/MLP_MNIST_PyTorch_Notebook.ipynb",
-    "docs/docs_teacher/thuật toán backpropagation - giải thích.docx",
-    "docs/docs_teacher"
+    "docs/6.11/cheatsheet.md",
+    "docs/6.11/~$Deep_Learning_Optimizer_Evolution_2.pptx",
+    "docs/6.11/Kich_ban_thuyet_trinh.md",
+    "docs/6.11/figs/Gemini_Generated_Image_gigxxdgigxxdgigx.png.crdownload",
+    "docs/6.11/Deep_Learning_Optimizer_Evolution_2.pptx",
+    "docs/6.11/figs/history_optimizer.png",
+    "docs/6.11/figs/Gemini_Generated_Image_50tljo50tljo50tl.png.crdownload",
+    "docs/6.11/back/~$Deep_Learning_Optimizer_Evolution.pptx",
+    "docs/6.11/~$Deep_Learning_Optimizer_Evolution.pptx",
+    "docs/6.11/back/Deep_Learning_Optimizer_Evolution.pptx",
+    "docs/6.11/back",
+    "docs/6.11/New folder",
+    "docs/6.11/ppt9404.tmp",
+    "docs/6.11/figs/gd-2 copy.png",
+    "docs/6.11/revise.Backpropagation.md",
+    "docs/6.11/README.md",
+    "docs/6.11/figs/gd_sgd.png",
+    "docs/6.11/figs/gd-2.png",
+    "docs/6.11/figs/3.png",
+    "docs/6.11/figs/2.png",
+    "docs/6.11/figs/1.png",
+    "docs/6.11/glossary_gradient_backpropagation.md",
+    "docs/6.11/Slide.md",
+    "docs/6.4_Backpropagation/figs/gd_sgd.png",
+    "docs/6.4_Backpropagation/figs/gd-2.png",
+    "docs/6.4_Backpropagation/figs/3.png",
+    "docs/6.4_Backpropagation/Backpropagation_Explanation.md",
+    "docs/6.4_Backpropagation/6.4_Backpropagation.md",
+    "docs/6.4_Backpropagation/glossary.md"
   ]
 }
