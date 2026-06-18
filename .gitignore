@@ -1,3 +1,4 @@
 *.pyc
 docs/docs_teacher/
 
+.env
