@@ -14,10 +14,6 @@
 
 Cặp E2B–E4B rất hợp cho bài giữa kỳ vì bạn có được một trục so sánh rõ ràng giữa **nhẹ hơn vs mạnh hơn** trong cùng một họ model, tránh nhiễu do khác kiến trúc hay tokenizer. Ngoài ra, Unsloth đã công bố hỗ trợ Gemma 4 và nhấn mạnh khả năng fine-tune trên VRAM thấp, nên đây là hướng thực dụng hơn nhiều so với việc nhảy sang model 7B+ hoặc medical VLM nặng hơn.[^4][^1][^2][^3]
 
-## Hướng làm với data
-
-Mình vẫn khuyên ghép 2 model này với `unsloth/Radiology_mini` để làm bài giữa kỳ, vì dataset nhỏ giúp bạn chạy được cả hai model, so sánh train/inference time, và làm ablation rõ ràng hơn. Nếu cần benchmark phụ, bạn có thể giữ VQA-RAD để test thêm sau fine-tune, nhưng dataset chính cho phần implement nên là Radiology_mini để tránh quá tải compute.[^5][^6]
-
 ## Link để bám code
 
 Bạn có thể dùng các link này để triển khai:
@@ -25,7 +21,6 @@ Bạn có thể dùng các link này để triển khai:
 - Unsloth notebook hub: [unsloth notebooks](https://unsloth.ai/docs/get-started/unsloth-notebooks)[^4]
 - Vision fine-tuning guide: [vision fine-tuning](https://unsloth.ai/docs/basics/vision-fine-tuning)[^7]
 - Gemma 4 guide: [gemma 4 training guide](https://unsloth.ai/docs/models/gemma-4)[^8]
-- Dataset: [unsloth/Radiology_mini](https://huggingface.co/datasets/unsloth/Radiology_mini)[^5]
 
 
 ## Nên chốt trong báo cáo
